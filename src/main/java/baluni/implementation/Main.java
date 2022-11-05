@@ -3,6 +3,7 @@ package baluni.implementation;
 import baluni.filestorage.StorageConfig;
 import baluni.model.Fajl;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,10 +82,21 @@ public class Main {
         input.add(new Fajl("d",".svg","/root/Desktop/vid/joka4/",LocalDate.of(2022,1,12),null,2000));
         input.add(new Fajl("e",".docx","/root/Desktop/vid/joka5/",LocalDate.of(2022,3,10),null,2000));
 
-        List<Fajl> out = local.sort(input,true,false,false,false,false);
+//        List<Fajl> out = local.sort(input,true,false,false,true);
+//
+//        for(Fajl fajl : out)
+//            System.out.println(fajl + fajl.getCreationDate().toString());
+//
+//        List<Fajl> out = local.listFileByDate("2022-11-05", "C:\\Users\\Vid\\Desktop\\joka");
+//        out = local.sort(out, true, false, false, true);
+//
+//        for(Fajl fajl : out)
+//            System.out.println(fajl.getFileName());
 
-        for(Fajl fajl : out)
-            System.out.println(fajl);
+//        List<Fajl> results = local.listFilesBetweenDates("2022-10-31","2022-10-31","C:\\Users\\Vid\\Desktop\\joka");
+//
+//        for(Fajl fajl : results)
+//            System.out.println(fajl);
     }
 
 }
