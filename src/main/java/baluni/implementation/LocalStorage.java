@@ -3,6 +3,7 @@ package baluni.implementation;
 import baluni.filestorage.MyFileStorage;
 import baluni.filestorage.StorageConfig;
 import baluni.implementation.comparators.SortByCreationDate;
+import baluni.implementation.comparators.SortByModificationDate;
 import baluni.implementation.comparators.SortByName;
 import baluni.model.Fajl;
 
@@ -16,9 +17,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Date;
 
 public class LocalStorage extends MyFileStorage {
 
@@ -522,22 +523,140 @@ public class LocalStorage extends MyFileStorage {
         return null;
     }
 
+
+    //Videti sort za fajlove numericke i alfanumericke - nije najprirodnije
     @Override
-    public List<Fajl> sort(List<Fajl> fileList,  boolean byName, boolean creationDate, boolean dateModified, boolean asc, boolean desc) {
+    public List<Fajl> sort(List<Fajl> fileList,  boolean byName, boolean creationDate, boolean dateModified, boolean asc) {
         if(byName){
-            fileList.sort(new SortByName());
+            fileList.sort(new SortByName(asc));
         }
 
         if(creationDate){
-            fileList.sort(new SortByCreationDate());
+            fileList.sort(new SortByCreationDate(asc));
+        }
+
+        if(dateModified){
+            fileList.sort(new SortByModificationDate(asc));
         }
 
         return fileList;
     }
 
     @Override
-    public void listFileByDate() {
+    public List<Fajl> listFileByDate(String date, String dirPath) {
 
+        LocalDate datum = LocalDate.parse(date);
+
+        List<Fajl> resultList = new ArrayList<Fajl>();
+
+        if(dirPath.isEmpty())
+            return null;
+
+        File directory = new File(dirPath);
+
+        if(!directory.exists())
+            return null;
+
+        if(!directory.isDirectory())
+            return null;
+
+        File[] dirFiles = directory.listFiles();
+
+        for(File file : dirFiles){
+            Path filePath = file.getAbsoluteFile().toPath();
+            Fajl tempFajl = new Fajl("","","");
+
+            String data[] = new String[100];
+
+            try {
+                BasicFileAttributes attributes = Files.readAttributes(filePath, BasicFileAttributes.class);
+
+                LocalDate fileCreationDate = LocalDate.ofInstant(attributes.creationTime().toInstant(), ZoneId.systemDefault());
+                LocalDate fileModificationDate = LocalDate.ofInstant(attributes.lastModifiedTime().toInstant(), ZoneId.systemDefault());
+
+                if(datum.equals(fileModificationDate) || datum.equals(fileCreationDate)){
+                    if(file.getName().contains("."))
+                        data = file.getName().split("\\.");
+                    else {
+                        data[0] = file.getName();
+                        data[1] = "";
+                    }
+
+                    tempFajl.setFileName(data[0]);
+                    tempFajl.setExtension(data[1]);
+                    tempFajl.setCreationDate(fileCreationDate);
+                    tempFajl.setModificationDate(fileModificationDate);
+                    tempFajl.setFileSize(0);
+                    tempFajl.setPath(filePath.toString());
+
+                    resultList.add(tempFajl);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        return resultList;
+    }
+
+    @Override
+    public List<Fajl> listFilesBetweenDates(String startDate, String endDate, String dirPath) {
+        List<Fajl> resultSet=new ArrayList<>();
+
+        LocalDate localStart = LocalDate.parse(startDate);
+        LocalDate localEnd = LocalDate.parse(endDate);
+
+        if(dirPath.isEmpty())
+            return null;
+
+        File dir=new File(dirPath);
+
+        if(!(dir.exists()))
+            return null;
+
+        if(!(dir.isDirectory()))
+            return null;
+
+
+        File[] files=dir.listFiles();
+        for(File dirFile:files){
+            Path filePath = dirFile.getAbsoluteFile().toPath();
+            Fajl tmpFajl=new Fajl("","", "");
+
+            String data[] = new String[100];
+
+            try {
+                BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
+                LocalDate creationDate=LocalDate.ofInstant(attr.creationTime().toInstant(), ZoneId.systemDefault());
+                LocalDate modificationDate=LocalDate.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.systemDefault());
+
+                if(creationDate.isBefore(localEnd) && creationDate.isAfter(localStart )
+                        || (modificationDate.isAfter(localStart) && modificationDate.isBefore(localEnd))
+                        || ((modificationDate.equals(localEnd) || (modificationDate.equals(localStart))
+                        || ((creationDate.equals(localEnd) || (creationDate.equals(localStart))))))){
+                    if(dirFile.getName().contains("."))
+                        data = dirFile.getName().split("\\.");
+                    else {
+                        data[0] = dirFile.getName();
+                        data[1] = "";
+                    }
+                    tmpFajl.setPath(filePath.toString());
+                    tmpFajl.setFileName(data[0]);
+                    tmpFajl.setExtension(data[1]);
+                    tmpFajl.setCreationDate(creationDate);
+                    tmpFajl.setModificationDate(modificationDate);
+                    tmpFajl.setFileSize(0);
+                    resultSet.add(tmpFajl);
+
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        return resultSet;
     }
 
     @Override
