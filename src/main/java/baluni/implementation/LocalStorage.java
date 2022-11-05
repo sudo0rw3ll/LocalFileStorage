@@ -174,7 +174,7 @@ public class LocalStorage extends MyFileStorage {
         if(path.isEmpty() || fileName.isEmpty())
             return false;
 
-        File f=new File(path);
+        File f = new File(path);
 
         if(!(f.exists()))
             return false;
@@ -205,7 +205,6 @@ public class LocalStorage extends MyFileStorage {
                 //Kreiranje objekta tipa Fajl
                 //joka.txt
                 String[] data = fileName.split("\\.");
-                System.out.println(data.length);
 
                 Fajl fajl = new Fajl(data[0],data[1],path, LocalDate.now(), LocalDate.now(),0);
 
@@ -239,6 +238,25 @@ public class LocalStorage extends MyFileStorage {
         }
 
         return true;
+    }
+
+    //Windows only
+    @Override
+    public void buildPath(String path) {
+        String absPath = this.getSotragePath();
+        String[] parsedData = path.split("\\\\");
+
+        for(String parsed : parsedData){
+            if(!parsed.contains(".")){
+                if(absPath.contains(parsed)){
+                    continue;
+                }
+                File dir = new File(absPath+"\\"+parsed);
+                if(dir.mkdir())
+                    System.out.println("okej");
+                absPath += "\\" + parsed;
+            }
+        }
     }
 
     @Override
