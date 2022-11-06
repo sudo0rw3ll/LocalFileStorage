@@ -98,8 +98,11 @@ public class Main {
 //        for(Fajl fajl : results)
 //            System.out.println(fajl);
 
-        local.buildPath("C:\\Users\\Vid\\Desktop\\test2\\test3\\test.txt");
-        local.createFile("C:\\Users\\Vid\\Desktop\\test\\test2\\test3\\","test.txt");
+//        local.buildPath("C:\\Users\\Vid\\Desktop\\test2\\test3\\test.txt");
+//        local.createFile("C:\\Users\\Vid\\Desktop\\test\\test2\\test3\\","test.txt");
+
+        Fajl out = local.findDirectoryOfFile("test1.txt");
+        System.out.println(out.toString());
     }
 
 }

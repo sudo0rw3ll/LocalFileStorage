@@ -16,10 +16,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Date;
+import java.util.*;
 
 public class LocalStorage extends MyFileStorage {
 
@@ -115,8 +112,7 @@ public class LocalStorage extends MyFileStorage {
     @Override
     public boolean createDirectory(String destination, String creationPattern) {
         //mkdir C:\\Users\\Vid\\Desktop\\s{1..20}
-        //mkdir C:\\Users\\Vid\\Desktop\\s{1:20}
-        //mkdir C:\\Users\\Vid\\Desktop\\s{1,20}
+        //mkdir C:\\Users\\Vid\\Desktop\\s[1:20]
         //mkdir C:\\Users\\Vid\\Desktop\\s{20->10}
 
         if(!(new File(destination).exists() && new File(destination).isDirectory())){
@@ -536,9 +532,67 @@ public class LocalStorage extends MyFileStorage {
         return false;
     }
 
+    private boolean findFileInDir(String dirPath, String fileName){
+        File dir = new File(dirPath);
+
+        if(!(dir.exists() || dir.isDirectory())){
+            return false;
+        }
+
+        File[] dirFiles = dir.listFiles();
+
+        if(dirFiles == null)
+            return false;
+
+        for(File currFile : dirFiles){
+            if(currFile.getName().equals(fileName)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override
     public Fajl findDirectoryOfFile(String fileName) {
-        return null;
+        String storage = this.getSotragePath();
+
+        File currDir = new File(storage);
+
+        File[] storageFiles = currDir.listFiles();
+
+        if(storageFiles == null)
+            return null;
+
+        File result = null;
+
+        boolean found = false;
+
+        for(File currFile : storageFiles){
+            if(currFile.getName().equals(fileName)) {
+                result = currFile;
+                found = true;
+            }
+        }
+
+        if(found)
+            return new Fajl(currDir.getName(), "", "");
+
+        for(File currFile : storageFiles){
+            boolean flag = false;
+            if(currFile.isDirectory()){
+                flag = findFileInDir(currFile.getPath(), fileName);
+                if(flag) {
+                    result = currFile;
+                    break;
+                }
+            }
+        }
+
+        if(result == null)
+            return null;
+
+        return new Fajl(result.getName(), "", "");
     }
 
 
