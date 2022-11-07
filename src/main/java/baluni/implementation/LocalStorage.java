@@ -7,8 +7,7 @@ import baluni.implementation.comparators.SortByModificationDate;
 import baluni.implementation.comparators.SortByName;
 import baluni.model.Fajl;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,11 +33,37 @@ public class LocalStorage extends MyFileStorage {
 
     @Override
     public boolean createStorage(String storagePath) {
+        Scanner scanner = new Scanner(System.in);
         File file = new File(storagePath);
         //check if storage already exists on given path
         if(file.isDirectory() && file.exists()){
-            System.out.println("Storage with this name already exists, try using another name.");
-            return false;
+            // System.out.println("Storage with this name already exists, try using another name.");
+            File[] dirFiles = file.listFiles();
+
+            boolean is_storage = false;
+
+            for(File dirFile : dirFiles){
+                if(dirFile.getName().equals("storage_config.json")){
+                    is_storage = true;
+                }
+            }
+
+            if(!is_storage){
+                System.out.println("Folder with this name already exists, try using another name");
+                return false;
+            }else{
+                System.out.println("This folder exists and it's already a storage, do you want to use it [yes/no]? ");
+                String choice = scanner.nextLine();
+
+                if(choice.equalsIgnoreCase("yes")){
+                    this.setSotragePath(storagePath);
+                    return true;
+                }else{
+                    System.out.println("Okay please provide new path for storage\nExiting...");
+                    return false;
+                }
+            }
+//            return false;
         }
 
         boolean fwdSlash = false;
@@ -50,7 +75,6 @@ public class LocalStorage extends MyFileStorage {
 
         if(file.mkdir()){
             System.out.println("Do you want to specify the path of config file [yes/no]? ");
-            Scanner scanner = new Scanner(System.in);
 
             String choice = scanner.nextLine();
 
@@ -75,7 +99,7 @@ public class LocalStorage extends MyFileStorage {
             }
 
             if(choice.equalsIgnoreCase("yes")) {
-                System.out.println("Enter storage path: ");
+                System.out.println("Enter storage config path: ");
                 String configFilePath = scanner.nextLine();
 
                 if(configFilePath.isEmpty()){
@@ -98,10 +122,15 @@ public class LocalStorage extends MyFileStorage {
                     }
                 }else{
                     System.out.println("Creating specific config");
+                    // ne bi bilo lose napraviti funkciju, moveFile(String filePath, String destDirPath);
+                    // pomera jedan fajl sa neke lokacije u neki direktorijum koji se prosledi
+                    // moveFiles radi tako sto kontent jednog direktorijuma prebaci u drugi
+                    moveFiles(configFilePath, storagePath);
                 }
             }
 
             System.out.println("Local storage has been created successfully!");
+            this.setSotragePath(storagePath);
             return true;
         }
 
@@ -119,12 +148,31 @@ public class LocalStorage extends MyFileStorage {
             System.out.println("Directory on this path doesn't exist");
             return false;
         }
+        
+        String[] data = new String[100];
+        String[] range = new String[100];
+        String fileName = "";
+        
+        if(creationPattern.contains("{")){
+            data = creationPattern.split("\\{");
+            if(data[1].contains(".."))
+                range = data[1].split("\\.\\.");
+            if(data[1].contains("->"))
+                range = data[1].split("->");
+        }
+        
+        if(creationPattern.contains("[")){
+            data = creationPattern.split("\\[");
+            range = data[1].split(":");
+        }
 
-        String[] data = creationPattern.split("\\{");
-
-        String fileName = data[0];
-
-        String[] range = data[1].split("\\.\\.");
+        fileName = data[0];
+        
+//        String[] data = creationPattern.split("\\{");
+//
+//        String fileName = data[0];
+//
+//        String[] range = data[1].split("\\.\\.");
 
         int start_idx = -1;
         int end_idx = -1;
@@ -144,21 +192,35 @@ public class LocalStorage extends MyFileStorage {
             System.out.println(start_idx + " " + end_idx);
         }
 
-        for(int i=start_idx;i<=end_idx;i++){
-            File newDir = new File(destination+"\\"+fileName+i);
+        // Treba sredjivanje koda, ima RY
 
-            if(newDir.exists()){
-                System.out.println(fileName + i + " already exists");
+        if(start_idx > end_idx){
+            for(int i=start_idx;i>=end_idx;i--){
+                File newDir = new File(destination+"\\"+fileName+i);
+
+                if(newDir.exists()){
+                    System.out.println(fileName + i + " already exists");
+                    continue;
+                }
+
+                if(!newDir.mkdir()){
+                    System.out.println("Couldn't create directory with name " + fileName+i);
+                    return false;
+                }
             }
+        }else{
+            for (int i = start_idx; i <= end_idx; i++) {
+                File newDir = new File(destination + "\\" + fileName + i);
 
-            if(newDir.exists()){
-                System.out.println(fileName + i + " already exists");
-                continue;
-            }
+                if (newDir.exists()) {
+                    System.out.println(fileName + i + " already exists");
+                    continue;
+                }
 
-            if(!newDir.mkdir()){
-                System.out.println("Couldn't create directory with name " + fileName+i);
-                return false;
+                if (!newDir.mkdir()) {
+                    System.out.println("Couldn't create directory with name " + fileName + i);
+                    return false;
+                }
             }
         }
 
@@ -373,8 +435,65 @@ public class LocalStorage extends MyFileStorage {
     }
 
     @Override
-    public void download(String s, String s1) {
+    public void download(String sourcePath, String destPath) {
+        File source = new File(sourcePath);
+        File dst = new File(destPath);
 
+        if(!source.exists()){
+            System.out.println("Ne postoji");
+            return;
+        }
+
+        if(!dst.exists())
+            return;
+
+        if(destPath.contains(this.getSotragePath())){
+            System.out.println("Destinacija mora biti izvan storage-a");
+            return;
+        }
+
+        try {
+            if(source.isDirectory()) {
+                File newDest = new File(destPath + "\\" + sourcePath.substring(sourcePath.lastIndexOf("\\")));
+                System.out.println("a->" + newDest.getPath());
+                copyDirectoryCompatibityMode(source, newDest);
+            } else {
+                File fileDest = new File(destPath + "\\" + sourcePath.substring(sourcePath.lastIndexOf("\\"), sourcePath.length()));
+                copyFile(source, fileDest);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void copyDirectory(File sourceDirectory, File destinationDirectory) throws IOException {
+        if (!destinationDirectory.exists()) {
+            destinationDirectory.mkdir();
+        }
+        for (String f : sourceDirectory.list()) {
+            System.out.println(new File(destinationDirectory, f).getPath());
+            copyDirectoryCompatibityMode(new File(sourceDirectory, f), new File(destinationDirectory, f));
+        }
+    }
+
+    private void copyDirectoryCompatibityMode(File source, File destination) throws IOException {
+        if (source.isDirectory()) {
+            copyDirectory(source, destination);
+        } else {
+            copyFile(source, destination);
+        }
+    }
+
+    private void copyFile(File sourceFile, File destinationFile)
+            throws IOException {
+        try (InputStream in = new FileInputStream(sourceFile);
+             OutputStream out = new FileOutputStream(destinationFile)) {
+            byte[] buf = new byte[1024];
+            int length;
+            while ((length = in.read(buf)) > 0) {
+                out.write(buf, 0, length);
+            }
+        }
     }
 
     // TREBA DODATI ERROR HANDLING A NE OVAJ SELJACKI
