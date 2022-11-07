@@ -3,7 +3,6 @@ package baluni.implementation;
 import baluni.filestorage.StorageConfig;
 import baluni.model.Fajl;
 
-import java.io.File;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,13 +33,18 @@ public class Main {
 //            System.out.println(fajl.toString());
 //        }
 
-        List<String> forbidden = new ArrayList<>();
-        forbidden.add(".jpg");
-        forbidden.add(".png");
-        forbidden.add(".svg");
-        StorageConfig storageConfig = new StorageConfig("Moj storage", 4096,10, forbidden);
-        local.setStorageConfig(storageConfig);
-        local.setSotragePath("C:\\Users\\Vid\\Desktop\\test\\");
+//        List<String> forbidden = new ArrayList<>();
+//        forbidden.add(".jpg");
+//        forbidden.add(".png");
+//        forbidden.add(".svg");
+//        StorageConfig storageConfig = new StorageConfig("Moj storage", 4096,10, forbidden);
+//        local.setStorageConfig(storageConfig);
+//        local.setSotragePath("C:\\Users\\Vid\\Desktop\\test\\");
+
+        local.setSotragePath("C:\\Users\\Vid\\Desktop\\joka\\");
+        local.download("C:\\Users\\Vid\\Desktop\\joka\\joka20","C:\\Users\\Vid\\Desktop\\tt\\");
+
+//        local.createDirectory("C:\\Users\\Vid\\Desktop\\storka\\","joka{20->1}");
 //
 //        for(Fajl fajl : local.listFilesForExtension(".svg")){
 //            System.out.println(fajl.getFileName() + fajl.getExtension());
@@ -100,9 +104,9 @@ public class Main {
 
 //        local.buildPath("C:\\Users\\Vid\\Desktop\\test2\\test3\\test.txt");
 //        local.createFile("C:\\Users\\Vid\\Desktop\\test\\test2\\test3\\","test.txt");
-
-        Fajl out = local.findDirectoryOfFile("test1.txt");
-        System.out.println(out.toString());
+//
+//        Fajl out = local.findDirectoryOfFile("test1.txt");
+//        System.out.println(out.toString());
     }
 
 }
