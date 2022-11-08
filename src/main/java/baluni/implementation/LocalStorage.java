@@ -43,7 +43,7 @@ public class LocalStorage extends MyFileStorage {
             boolean is_storage = false;
 
             for(File dirFile : dirFiles){
-                if(dirFile.getName().equals("storage_config.json")){
+                if(dirFile.getName().equals("config.json")){
                     is_storage = true;
                 }
             }
@@ -57,6 +57,7 @@ public class LocalStorage extends MyFileStorage {
 
                 if(choice.equalsIgnoreCase("yes")){
                     this.setSotragePath(storagePath);
+                    this.readConfig(storagePath+"\\"+"config.json");
                     return true;
                 }else{
                     System.out.println("Okay please provide new path for storage\nExiting...");
@@ -81,20 +82,9 @@ public class LocalStorage extends MyFileStorage {
             if(choice.equalsIgnoreCase("no")){
                 System.out.println("Okay, default config will be created");
                 if(!fwdSlash){
-                    System.out.println(storagePath + "\\" + "default_config.json");
-                    try {
-                        config = new File(storagePath + "\\" + "default_config.json");
-                        config.createNewFile();
-                    }catch (IOException e){
-                        e.printStackTrace();
-                    }
+                    this.writeDefaultConfig(storagePath);
                 }else {
-                    try {
-                        config = new File(storagePath + "/" + "default_config.json");
-                        config.createNewFile();
-                    }catch (IOException e){
-                        e.printStackTrace();
-                    }
+                    this.writeDefaultConfig(storagePath);
                 }
             }
 
@@ -125,7 +115,8 @@ public class LocalStorage extends MyFileStorage {
                     // ne bi bilo lose napraviti funkciju, moveFile(String filePath, String destDirPath);
                     // pomera jedan fajl sa neke lokacije u neki direktorijum koji se prosledi
                     // moveFiles radi tako sto kontent jednog direktorijuma prebaci u drugi
-                    moveFiles(configFilePath, storagePath);
+                    this.readConfig(configFilePath);
+                    moveFile(configFilePath, storagePath);
                 }
             }
 
@@ -233,17 +224,20 @@ public class LocalStorage extends MyFileStorage {
             return false;
 
         File f = new File(path);
+        String data[] = fileName.split("\\.");
+
+        for(int i=1;i<data.length;i++){
+            if(this.getStorageConfig().getForbiddenExtensions().contains("."+data[i])){
+                System.out.println("Cannot create file with extension " + data[i] + " because that extenstion is forbidden");
+                return false;
+            }
+        }
 
         if(!(f.exists()))
             return false;
 
         if(!(f.isDirectory()))
             return false;
-
-        // Proveriti da li treba provera ekstenzije
-//        //slika.jpg
-//        if(!fileName.contains("."))
-//            return false;
 
         boolean windows = path.contains("\\");
 
@@ -260,17 +254,6 @@ public class LocalStorage extends MyFileStorage {
                     System.out.println("Ne mogu da napravim fajl " + fileName);
                     return false;
                 }
-                //Kreiranje objekta tipa Fajl
-                //joka.txt
-                String[] data = fileName.split("\\.");
-
-                Fajl fajl = new Fajl(data[0],data[1],path, LocalDate.now(), LocalDate.now(),0);
-
-                if(!listaFajlova.contains(fajl)) {
-                    listaFajlova.add(fajl);
-                    System.out.println(fajl);
-                }
-
             }catch (IOException exception){
                 exception.printStackTrace();
             }
@@ -431,6 +414,21 @@ public class LocalStorage extends MyFileStorage {
             if(result==null)
                 return;
             System.out.println("pomereni");
+        }
+    }
+
+    @Override
+    public void moveFile(String filePath, String destination) {
+        File file = new File(filePath);
+        if(!file.isDirectory()){
+            if(file.exists()){
+                try{
+                    Files.move(Paths.get(file.getPath()), Paths.get(destination + "\\" + file.getName()),
+                            StandardCopyOption.REPLACE_EXISTING);
+                }catch (IOException e){
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -892,4 +890,5 @@ public class LocalStorage extends MyFileStorage {
 
         return outputList;
     }
+
 }
