@@ -11,6 +11,25 @@ public class Main {
 
     public static void main(String[] args) {
         LocalStorage local = new LocalStorage();
+
+        System.out.println(System.getProperty("file.separator"));
+
+        String path = "C:\\Users\\Vid\\Desktop\\tt\\config.json";
+
+        String delimiter = System.getProperty("file.separator");
+
+        String data[] = path.split(delimiter);
+
+        for(int i=0;i<data.length;i++){
+            System.out.println(data[i]);
+        }
+
+//        StorageConfig storageConfig = new StorageConfig();
+////        local.readConfig("C:\\Users\\Vid\\Desktop\\tt\\config.json");
+//        local.createStorage("C:\\Users\\Vid\\Desktop\\stor\\");
+//        System.out.println(local.getStorageConfig().getStorageName());
+//        System.out.println(local.getStorageConfig().getForbiddenExtensions());
+//        local.createFile("C:\\Users\\Vid\\Desktop\\stor\\","tryme.jpg");
 //        local.createStorage("C:\\Users\\Vid\\Desktop\\joka");
 //        local.createDirectory("C:\\Users\\Vid\\Desktop\\joka\\","joka{1..20}");
 //        boolean result = local.createFile("C:\\Users\\Vid\\Desktop\\joka\\","joka.txt");
@@ -40,9 +59,9 @@ public class Main {
 //        StorageConfig storageConfig = new StorageConfig("Moj storage", 4096,10, forbidden);
 //        local.setStorageConfig(storageConfig);
 //        local.setSotragePath("C:\\Users\\Vid\\Desktop\\test\\");
-
-        local.setSotragePath("C:\\Users\\Vid\\Desktop\\joka\\");
-        local.download("C:\\Users\\Vid\\Desktop\\joka\\joka20","C:\\Users\\Vid\\Desktop\\tt\\");
+//
+//        local.setSotragePath("C:\\Users\\Vid\\Desktop\\joka\\");
+//        local.download("C:\\Users\\Vid\\Desktop\\joka\\joka20","C:\\Users\\Vid\\Desktop\\tt\\");
 
 //        local.createDirectory("C:\\Users\\Vid\\Desktop\\storka\\","joka{20->1}");
 //
