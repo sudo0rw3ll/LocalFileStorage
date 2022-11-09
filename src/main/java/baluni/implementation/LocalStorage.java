@@ -19,7 +19,7 @@ import java.util.*;
 
 public class LocalStorage extends MyFileStorage {
 
-    static List<Fajl> listaFajlova = new ArrayList<>();
+    private long usedCapacity = 0;
 
     @Override
     public void setStorageConfig(StorageConfig storageConfig) {
@@ -139,7 +139,7 @@ public class LocalStorage extends MyFileStorage {
             System.out.println("Directory on this path doesn't exist");
             return false;
         }
-        
+
         String[] data = new String[100];
         String[] range = new String[100];
         String fileName = "";
@@ -187,6 +187,14 @@ public class LocalStorage extends MyFileStorage {
 
         if(start_idx > end_idx){
             for(int i=start_idx;i>=end_idx;i--){
+                if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(destination).toString())){
+                    int destContentSize = this.listFilesInDir(Paths.get(destination).toString()).size();
+                    int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(Paths.get(destination).toString());
+                    if(destContentSize == allowdContentSize) {
+                        System.out.println("Directory is full");
+                        return false;
+                    }
+                }
                 File newDir = new File(destination+"\\"+fileName+i);
 
                 if(newDir.exists()){
@@ -201,6 +209,14 @@ public class LocalStorage extends MyFileStorage {
             }
         }else{
             for (int i = start_idx; i <= end_idx; i++) {
+                if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(destination).toString())){
+                    int destContentSize = this.listFilesInDir(Paths.get(destination).toString()).size();
+                    int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(Paths.get(destination).toString());
+                    if(destContentSize == allowdContentSize) {
+                        System.out.println("Directory is full");
+                        return false;
+                    }
+                }
                 File newDir = new File(destination + "\\" + fileName + i);
 
                 if (newDir.exists()) {
@@ -216,6 +232,24 @@ public class LocalStorage extends MyFileStorage {
         }
 
         return true;
+    }
+
+    @Override
+    public boolean createDirectory(String path, String folderName, int allowedItems) {
+        File desiredPath = new File(path);
+
+        if(!desiredPath.exists())
+            return false;
+
+        File folder = new File(path+"\\"+folderName);
+
+        if(folder.exists())
+            return false;
+
+        String fullPath = path + "\\" + folderName;
+        System.out.println(fullPath);
+        this.getStorageConfig().getFoldersWithCapacity().put(fullPath, allowedItems);
+        return folder.mkdir();
     }
 
     @Override
@@ -238,6 +272,15 @@ public class LocalStorage extends MyFileStorage {
 
         if(!(f.isDirectory()))
             return false;
+
+        if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(path).toString())){
+            int destContentSize = this.listFilesInDir(path).size();
+            int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(path);
+            if(destContentSize == allowdContentSize) {
+                System.out.println("Directory is full");
+                return false;
+            }
+        }
 
         boolean windows = path.contains("\\");
 
@@ -393,12 +436,27 @@ public class LocalStorage extends MyFileStorage {
         if(sourceDirFiles == null)
             return;
 
-        for(File file : sourceDirFiles){
-            System.out.println(file.getPath());
-        }
+//        for(File file : sourceDirFiles){
+//            System.out.println(file.getPath());
+//        }
 
         for (File file:sourceDirFiles){
             Path result=null;
+
+            String[] data = file.getName().split("\\.");
+
+            if(this.getStorageConfig().getForbiddenExtensions().contains(data[data.length-1]))
+                return;
+
+            if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(destination).toString())){
+                int destContentSize = this.listFilesInDir(destination).size();
+                int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(destination);
+                if(destContentSize == allowdContentSize) {
+                    System.out.println("Directory is full");
+                    return;
+                }
+            }
+
             try{
                 // Hardcode za windows, treba podrzati multi-platform
                 // Ideja je da program odredi koji je flavor, ako je windows onda koristi \
@@ -422,6 +480,22 @@ public class LocalStorage extends MyFileStorage {
         File file = new File(filePath);
         if(!file.isDirectory()){
             if(file.exists()){
+                String[] data = file.getName().split("\\.");
+
+                if(this.getStorageConfig().getForbiddenExtensions().contains(data[data.length-1])) {
+                    System.out.println("This extension is forbidden");
+                    return;
+                }
+
+                if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(destination).toString())){
+                    int destContentSize = this.listFilesInDir(destination).size();
+                    int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(destination);
+                    if(destContentSize == allowdContentSize) {
+                        System.out.println("Directory is full");
+                        return;
+                    }
+                }
+
                 try{
                     Files.move(Paths.get(file.getPath()), Paths.get(destination + "\\" + file.getName()),
                             StandardCopyOption.REPLACE_EXISTING);
@@ -500,6 +574,15 @@ public class LocalStorage extends MyFileStorage {
         if(oldFileName.equalsIgnoreCase(newFileName)){
             System.out.println("Novo ime je isto kao i staro");
             return false;
+        }
+
+        String data[] = newFileName.split("\\.");
+
+        for(int i=1;i<data.length;i++){
+            if(this.getStorageConfig().getForbiddenExtensions().contains(data[i])){
+                System.out.println("Cannot rename to the name containing forbidden extension");
+                return false;
+            }
         }
 
         Path source = Paths.get(oldFileName);
