@@ -11,19 +11,35 @@ public class Main {
 
     public static void main(String[] args) {
         LocalStorage local = new LocalStorage();
+        local.createStorage("C:\\Users\\Vid\\Desktop\\stor");
+        System.out.println(local.getStorageConfig().getForbiddenExtensions());
+        local.getStorageConfig().getFoldersWithCapacity().put("C:\\Users\\Vid\\Desktop\\niko", 2);
+        boolean ok = local.createDirectory("C:\\Users\\Vid\\Desktop","niko",2);
+        System.out.println(ok);
+        local.createDirectory("C:\\Users\\Vid\\Desktop\\niko","s{1..20}");
 
-        System.out.println(System.getProperty("file.separator"));
+//        System.out.println(local.getStorageConfig().getFoldersWithCapacity().get("C:\\Users\\Vid\\Desktop\\niko"));
+//        System.out.println(local.getStorageConfig().getFoldersWithCapacity().keySet());
+//        local.moveFiles("C:\\Users\\Vid\\Desktop\\tt","C:\\Users\\Vid\\Desktop\\niko");
+//
+//        local.moveFile("C:\\Users\\Vid\\Desktop\\tt\\a.txt","C:\\Users\\Vid\\Desktop\\niko");
+//        local.moveFile("C:\\Users\\Vid\\Desktop\\tt\\b.txt", "C:\\Users\\Vid\\Desktop\\niko");
+//        local.moveFile("C:\\Users\\Vid\\Desktop\\tt\\c.txt", "C:\\Users\\Vid\\Desktop\\niko");
+//
+//        local.getStorageConfig().getFoldersWithCapacity().put("C:\\Users\\Vid\\Desktop\\niko",2);
+//        System.out.println(local.listFilesInDir("C:\\Users\\Vid\\Desktop\\niko").size());
+//        System.out.println(local.getStorageConfig().getFoldersWithCapacity().get("C:\\Users\\Vid\\Desktop\\niko"));
 
-        String path = "C:\\Users\\Vid\\Desktop\\tt\\config.json";
 
-        String delimiter = System.getProperty("file.separator");
 
-        String data[] = path.split(delimiter);
-
-        for(int i=0;i<data.length;i++){
-            System.out.println(data[i]);
-        }
-
+//
+//
+//
+//
+//        local.moveFile("C:\\Users\\Vid\\Desktop\\tt\\a.txt","C:\\Users\\Vid\\Desktop\\niko");
+//        local.moveFile("C:\\Users\\Vid\\Desktop\\tt\\b.txt","C:\\Users\\Vid\\Desktop\\niko");
+//        local.moveFile("C:\\Users\\Vid\\Desktop\\tt\\c.txt","C:\\Users\\Vid\\Desktop\\niko");
+//        local.moveFiles("C:\\Users\\Vid\\Desktop\\tt","C:\\Users\\Vid\\Desktop\\niko");
 //        StorageConfig storageConfig = new StorageConfig();
 ////        local.readConfig("C:\\Users\\Vid\\Desktop\\tt\\config.json");
 //        local.createStorage("C:\\Users\\Vid\\Desktop\\stor\\");
@@ -98,12 +114,12 @@ public class Main {
 
 //        local.moveFiles("C:\\Users\\Vid\\Desktop\\test","C:\\Users\\Vid\\Desktop\\tt\\");
 
-        List<Fajl> input = new ArrayList<>();
-        input.add(new Fajl("b",".txt","/root/Desktop/vid/joka/",LocalDate.of(2022,2,18),LocalDate.of(2022,2,10),2000));
-        input.add(new Fajl("c",".jpg","/root/Desktop/vid/joka2/",LocalDate.of(2022,2,10),LocalDate.of(2022,2,10),2000));
-        input.add(new Fajl("a",".png","/root/Desktop/vid/joka3/",LocalDate.of(2022,1,5),null,2000));
-        input.add(new Fajl("d",".svg","/root/Desktop/vid/joka4/",LocalDate.of(2022,1,12),null,2000));
-        input.add(new Fajl("e",".docx","/root/Desktop/vid/joka5/",LocalDate.of(2022,3,10),null,2000));
+//        List<Fajl> input = new ArrayList<>();
+//        input.add(new Fajl("b",".txt","/root/Desktop/vid/joka/",LocalDate.of(2022,2,18),LocalDate.of(2022,2,10),2000));
+//        input.add(new Fajl("c",".jpg","/root/Desktop/vid/joka2/",LocalDate.of(2022,2,10),LocalDate.of(2022,2,10),2000));
+//        input.add(new Fajl("a",".png","/root/Desktop/vid/joka3/",LocalDate.of(2022,1,5),null,2000));
+//        input.add(new Fajl("d",".svg","/root/Desktop/vid/joka4/",LocalDate.of(2022,1,12),null,2000));
+//        input.add(new Fajl("e",".docx","/root/Desktop/vid/joka5/",LocalDate.of(2022,3,10),null,2000));
 
 //        List<Fajl> out = local.sort(input,true,false,false,true);
 //
