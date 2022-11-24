@@ -31,111 +31,40 @@ public class LocalStorage extends MyFileStorage {
         return super.getStorageConfig();
     }
 
+
     @Override
-    public boolean createStorage(String storagePath) {
-        Scanner scanner = new Scanner(System.in);
-        File file = new File(storagePath);
-        //check if storage already exists on given path
-        if(file.isDirectory() && file.exists()){
-            // System.out.println("Storage with this name already exists, try using another name.");
-            File[] dirFiles = file.listFiles();
+    public boolean createStorage(String storagePath){
+        this.setSotragePath(storagePath);
 
-            boolean is_storage = false;
-
-            for(File dirFile : dirFiles){
-                if(dirFile.getName().equals("config.json")){
-                    is_storage = true;
-                }
-            }
-
-            if(!is_storage){
-                System.out.println("Folder with this name already exists, try using another name");
-                return false;
+        if(new File(storagePath + "\\config.json").exists()){
+            this.readConfig(this.getSotragePath()+"\\config.json");
+            return true;
+        }else{
+            if(new File(storagePath).exists()){
+                StorageConfig storageConfig = new StorageConfig();
+                this.setStorageConfig(storageConfig);
+                this.saveStorageConfig(this.getSotragePath() + "\\" + "config.json");
+                return true;
             }else{
-                System.out.println("This folder exists and it's already a storage, do you want to use it [yes/no]? ");
-                String choice = scanner.nextLine();
+                File pathCreation = new File(storagePath);
 
-                if(choice.equalsIgnoreCase("yes")){
-                    this.setSotragePath(storagePath);
-                    this.readConfig(storagePath+"\\"+"config.json");
+                if(pathCreation.mkdir()){
+                    this.writeDefaultConfig(this.getSotragePath() + "\\" + "config.json");
                     return true;
                 }else{
-                    System.out.println("Okay please provide new path for storage\nExiting...");
+                    System.out.println("Cannot create path for " + storagePath);
                     return false;
                 }
             }
-//            return false;
         }
-
-        boolean fwdSlash = false;
-        File config = null;
-
-        if(!storagePath.startsWith("C:\\")){
-            fwdSlash = true;
-        }
-
-        if(file.mkdir()){
-            System.out.println("Do you want to specify the path of config file [yes/no]? ");
-
-            String choice = scanner.nextLine();
-
-            if(choice.equalsIgnoreCase("no")){
-                System.out.println("Okay, default config will be created");
-                if(!fwdSlash){
-                    this.writeDefaultConfig(storagePath);
-                }else {
-                    this.writeDefaultConfig(storagePath);
-                }
-            }
-
-            if(choice.equalsIgnoreCase("yes")) {
-                System.out.println("Enter storage config path: ");
-                String configFilePath = scanner.nextLine();
-
-                if(configFilePath.isEmpty()){
-                    System.out.println("Path of config file empty, creating default config");
-
-                    if(!fwdSlash) {
-                        try {
-                            config = new File(storagePath + "\\" + "default_config.json");
-                            config.createNewFile();
-                        }catch (IOException e){
-                            e.printStackTrace();
-                        }
-                    }else{
-                        try {
-                            config = new File(storagePath + "/" + "default_config.json");
-                            config.createNewFile();
-                        }catch (IOException e){
-                            e.printStackTrace();
-                        }
-                    }
-                }else{
-                    System.out.println("Creating specific config");
-                    // ne bi bilo lose napraviti funkciju, moveFile(String filePath, String destDirPath);
-                    // pomera jedan fajl sa neke lokacije u neki direktorijum koji se prosledi
-                    // moveFiles radi tako sto kontent jednog direktorijuma prebaci u drugi
-                    this.readConfig(configFilePath);
-                    moveFile(configFilePath, storagePath);
-                }
-            }
-
-            System.out.println("Local storage has been created successfully!");
-            this.setSotragePath(storagePath);
-            return true;
-        }
-
-        return false;
-
     }
 
     @Override
-    public boolean createDirectory(String destination, String creationPattern) {
-        //mkdir C:\\Users\\Vid\\Desktop\\s{1..20}
-        //mkdir C:\\Users\\Vid\\Desktop\\s[1:20]
-        //mkdir C:\\Users\\Vid\\Desktop\\s{20->10}
+    public boolean createDirectories(String destination, String creationPattern) {
+        if(destination.isEmpty() || destination.equals("."))
+            destination = "";
 
-        if(!(new File(destination).exists() && new File(destination).isDirectory())){
+        if(!(new File(this.getSotragePath() + "\\" + destination).exists() && new File(this.getSotragePath() + "\\" + destination).isDirectory())){
             System.out.println("Directory on this path doesn't exist");
             return false;
         }
@@ -143,7 +72,7 @@ public class LocalStorage extends MyFileStorage {
         String[] data = new String[100];
         String[] range = new String[100];
         String fileName = "";
-        
+
         if(creationPattern.contains("{")){
             data = creationPattern.split("\\{");
             if(data[1].contains(".."))
@@ -151,19 +80,14 @@ public class LocalStorage extends MyFileStorage {
             if(data[1].contains("->"))
                 range = data[1].split("->");
         }
-        
+
         if(creationPattern.contains("[")){
             data = creationPattern.split("\\[");
             range = data[1].split(":");
         }
 
         fileName = data[0];
-        
-//        String[] data = creationPattern.split("\\{");
-//
-//        String fileName = data[0];
-//
-//        String[] range = data[1].split("\\.\\.");
+
 
         int start_idx = -1;
         int end_idx = -1;
@@ -183,19 +107,18 @@ public class LocalStorage extends MyFileStorage {
             System.out.println(start_idx + " " + end_idx);
         }
 
-        // Treba sredjivanje koda, ima RY
-
         if(start_idx > end_idx){
             for(int i=start_idx;i>=end_idx;i--){
-                if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(destination).toString())){
-                    int destContentSize = this.listFilesInDir(Paths.get(destination).toString()).size();
-                    int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(Paths.get(destination).toString());
-                    if(destContentSize == allowdContentSize) {
+                if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(this.getSotragePath() + "\\" + destination).toString())){
+                    int destContentSize = this.listFilesInDir(destination).size()
+                            + this.listDirsForDir(destination).size();
+                    int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(Paths.get(this.getSotragePath() + "\\" + destination).toString());
+                    if(destContentSize >= allowdContentSize) {
                         System.out.println("Directory is full");
                         return false;
                     }
                 }
-                File newDir = new File(destination+"\\"+fileName+i);
+                File newDir = new File(this.getSotragePath() + "\\" + destination + "\\" + fileName+i);
 
                 if(newDir.exists()){
                     System.out.println(fileName + i + " already exists");
@@ -209,15 +132,19 @@ public class LocalStorage extends MyFileStorage {
             }
         }else{
             for (int i = start_idx; i <= end_idx; i++) {
-                if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(destination).toString())){
-                    int destContentSize = this.listFilesInDir(Paths.get(destination).toString()).size();
-                    int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(Paths.get(destination).toString());
-                    if(destContentSize == allowdContentSize) {
+                if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(this.getSotragePath() + "\\" + destination).toString())){
+                    int destDirSize = this.listDirsForDir(destination).size();
+                    int destFilesSize = this.listFilesInDir(destination).size();
+
+                    int destContentSize = destDirSize + destFilesSize;
+
+                    int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(Paths.get(this.getSotragePath() + "\\" + destination).toString());
+                    if(destContentSize >= allowdContentSize) {
                         System.out.println("Directory is full");
                         return false;
                     }
                 }
-                File newDir = new File(destination + "\\" + fileName + i);
+                File newDir = new File(this.getSotragePath() + "\\" + destination + "\\" + fileName+i);
 
                 if (newDir.exists()) {
                     System.out.println(fileName + i + " already exists");
@@ -234,30 +161,57 @@ public class LocalStorage extends MyFileStorage {
         return true;
     }
 
+
     @Override
-    public boolean createDirectory(String path, String folderName, int allowedItems) {
-        File desiredPath = new File(path);
+    public boolean createDir(String destination, String dirName) {
 
-        if(!desiredPath.exists())
+        if(destination.isEmpty() || destination.contains("."))
+            destination = "";
+
+        File path = new File(this.getSotragePath()+"\\"+destination);
+
+        if(!path.exists()) {
+            System.out.println("Destinacija ne postoji");
             return false;
+        }
 
-        File folder = new File(path+"\\"+folderName);
+        String folderPath = path + "\\" + dirName;
+
+        File folder = new File(folderPath);
 
         if(folder.exists())
             return false;
 
-        String fullPath = path + "\\" + folderName;
-        System.out.println(fullPath);
-        this.getStorageConfig().getFoldersWithCapacity().put(fullPath, allowedItems);
         return folder.mkdir();
     }
+
+
+    @Override
+    public boolean createDirectory(String path, String folderName, int allowedItems) {
+        if(path.isEmpty() || path.contains("."))
+            path = "";
+
+        File desiredPath = new File(this.getSotragePath() + "\\" + path);
+
+        if(!desiredPath.exists())
+            return false;
+
+        File folder = new File(desiredPath+"\\"+folderName);
+
+        if(folder.exists())
+            return false;
+
+        this.getStorageConfig().getFoldersWithCapacity().put(folder.getAbsolutePath(), allowedItems);
+        return folder.mkdir();
+    }
+
 
     @Override
     public boolean createFile(String path, String fileName) {
         if(path.isEmpty() || fileName.isEmpty())
-            return false;
+            path = "";
 
-        File f = new File(path);
+        File f = new File(this.getSotragePath()+"\\"+path);
         String data[] = fileName.split("\\.");
 
         for(int i=1;i<data.length;i++){
@@ -273,19 +227,19 @@ public class LocalStorage extends MyFileStorage {
         if(!(f.isDirectory()))
             return false;
 
-        if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(path).toString())){
-            int destContentSize = this.listFilesInDir(path).size();
-            int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(path);
-            if(destContentSize == allowdContentSize) {
+        if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(this.getSotragePath() + "\\" + path).toString())){
+            int destContentSize = this.listFilesInDir(path).size() + this.listDirsForDir(path).size();
+            int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(this.getSotragePath() + "\\" + path);
+            if(destContentSize >= allowdContentSize) {
                 System.out.println("Directory is full");
                 return false;
             }
         }
 
-        boolean windows = path.contains("\\");
+        boolean windows = f.getPath().contains("\\");
 
         if(windows){
-            File file = new File(path+"\\"+fileName);
+            File file = new File(this.getSotragePath()+"\\"+path+"\\"+fileName);
             if(file.exists()){
                 System.out.println("Ovaj fajl vec posotji");
                 return false;
@@ -324,7 +278,7 @@ public class LocalStorage extends MyFileStorage {
         return true;
     }
 
-    //Windows only
+
     @Override
     public void buildPath(String path) {
         String absPath = this.getSotragePath();
@@ -345,18 +299,25 @@ public class LocalStorage extends MyFileStorage {
 
     @Override
     public void fileUpload(String s, List<Fajl> list) {
-
+        return;
     }
 
     @Override
     public void deleteFiles(List<Fajl> list) {
         for(Fajl fajl : list){
             //Neka pocetna ideja, nekako treba da izbildujem pun path fajla
-            String fullPath = fajl.getPath() + fajl.getFileName() + fajl.getExtension();
+            String fullPath = fajl.getPath();
             File file = new File(fullPath);
 
             if(file.exists()) {
+                long fileSize = 0;
+                try{
+                    fileSize = Files.size(Paths.get(fullPath));
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
                 if (file.delete()) {
+                    usedCapacity -= fileSize;
                     System.out.println(fajl.getFileName() + " je obrisan uspesno");
                 } else {
                     System.out.println(fajl.getFileName() + " nije moguce obrisati");
@@ -379,11 +340,19 @@ public class LocalStorage extends MyFileStorage {
             if(dir.exists() && dir.isDirectory()){
                 File[] directoryFiles = dir.listFiles();
 
+                this.getStorageConfig().getFoldersWithCapacity().remove(dir.getAbsolutePath());
+
                 if(directoryFiles != null){
                     for(File file : directoryFiles){
-
                         if(!file.isDirectory()){
+                            long fileSize = 0;
+                            try{
+                                fileSize = Files.size(Paths.get(fajl.getPath()));
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
                             if(file.delete()){
+                                usedCapacity -= fileSize;
                                 System.out.println("Fajl " + file.getName() + " je uspesno obrisan");
                             }else{
                                 System.out.println("Fajl " + file.getName() + " nije moguce obrisati");
@@ -393,7 +362,14 @@ public class LocalStorage extends MyFileStorage {
 
                             if(subFiles != null){
                                 for(File subFile : subFiles){
+                                    long fileSize = 0;
+                                    try{
+                                        fileSize = Files.size(Paths.get(subFile.getPath()));
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
                                     if(subFile.delete()){
+                                        usedCapacity -= fileSize;
                                         System.out.println("Fajl " + subFile.getName() + " iz poddirektorijuma " + file.getName() + " je uspesno obrisan");
                                     }else{
                                         System.out.println("Fajl " + subFile.getName() + " iz poddirektorijuma " + file.getName() + " nije moguce obrisati");
@@ -401,7 +377,15 @@ public class LocalStorage extends MyFileStorage {
                                 }
                             }
 
+                            long fileSize = 0;
+                            try{
+                                fileSize = Files.size(Paths.get(file.getPath()));
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+
                             if(file.delete()){
+                                usedCapacity -= fileSize;
                                 System.out.println("Direktorijum " + file.getName() + " je uspesno obrisan");
                             }else{
                                 System.out.println("Direktorijum " + file.getName() + " nije moguce obrisati");
@@ -409,7 +393,15 @@ public class LocalStorage extends MyFileStorage {
                         }
                     }
 
+                    long fileSize = 0;
+                    try{
+                        fileSize = Files.size(Paths.get(dir.getPath()));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
                     if(dir.delete()){
+                        usedCapacity -= fileSize;
                         System.out.println("Direktorijum " + dir.getName() + " je uspesno obrisan");
                     }else{
                         System.out.println("Direktorijum " + dir.getName() + " nije moguce obrisati");
@@ -422,10 +414,10 @@ public class LocalStorage extends MyFileStorage {
     @Override
     public void moveFiles(String source, String destination) {
 
-        File sourceDir=new File(source);
+        File sourceDir=new File(this.getSotragePath() + "\\" + source);
         File [] sourceDirFiles=sourceDir.listFiles();
 
-        File destinationDir=new File(destination);
+        File destinationDir=new File(this.getSotragePath() + "\\" + destination);
 
         if(!(destinationDir.exists()))
             return;
@@ -448,14 +440,29 @@ public class LocalStorage extends MyFileStorage {
             if(this.getStorageConfig().getForbiddenExtensions().contains(data[data.length-1]))
                 return;
 
-            if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(destination).toString())){
-                int destContentSize = this.listFilesInDir(destination).size();
-                int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(destination);
-                if(destContentSize == allowdContentSize) {
+            if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(Paths.get(this.getSotragePath() + "\\" + destination).toString()).toString())){
+                int destContentSize = this.listFilesInDir(destination).size() + this.listDirsForDir(destination).size();
+                int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(Paths.get(this.getSotragePath() + "\\" + destination).toString());
+                if(destContentSize >= allowdContentSize) {
                     System.out.println("Directory is full");
                     return;
                 }
             }
+
+            long fileSize = 0;
+
+            try {
+                fileSize = Files.size(Paths.get(file.getPath()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if(usedCapacity + fileSize > this.getStorageConfig().getDefaultStorageSize()){
+                System.out.println("Storage capacity full");
+                return;
+            }
+
+            usedCapacity += fileSize;
 
             try{
                 // Hardcode za windows, treba podrzati multi-platform
@@ -463,7 +470,7 @@ public class LocalStorage extends MyFileStorage {
                 // Ako je unix like sistem koristi /
 
                 result = Files.move(Paths.get(file.getPath()),
-                        Paths.get(destination+"\\"+file.getName()),
+                        Paths.get(this.getSotragePath() + "\\" + destination + "\\" + file.getName()),
                         StandardCopyOption.REPLACE_EXISTING);
             }catch (IOException e){
                 e.printStackTrace();
@@ -477,7 +484,7 @@ public class LocalStorage extends MyFileStorage {
 
     @Override
     public void moveFile(String filePath, String destination) {
-        File file = new File(filePath);
+        File file = new File(this.getSotragePath() + "\\" + filePath);
         if(!file.isDirectory()){
             if(file.exists()){
                 String[] data = file.getName().split("\\.");
@@ -487,17 +494,33 @@ public class LocalStorage extends MyFileStorage {
                     return;
                 }
 
-                if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(destination).toString())){
-                    int destContentSize = this.listFilesInDir(destination).size();
+                if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(this.getSotragePath() + "\\" + destination).toString())){
+                    int destContentSize = this.listFilesInDir(destination).size() + this.listDirsForDir(destination).size();
                     int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(destination);
-                    if(destContentSize == allowdContentSize) {
+                    if(destContentSize >= allowdContentSize) {
                         System.out.println("Directory is full");
                         return;
                     }
                 }
 
+
+                long fileSize = 0;
+
+                try {
+                    fileSize = Files.size(Paths.get(file.getPath()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                if(usedCapacity + fileSize > this.getStorageConfig().getDefaultStorageSize()){
+                    System.out.println("Storage capacity full");
+                    return;
+                }
+
+                usedCapacity += fileSize;
+
                 try{
-                    Files.move(Paths.get(file.getPath()), Paths.get(destination + "\\" + file.getName()),
+                    Files.move(Paths.get(file.getPath()), Paths.get(this.getSotragePath()+ "\\" + destination + "\\" + file.getName()),
                             StandardCopyOption.REPLACE_EXISTING);
                 }catch (IOException e){
                     e.printStackTrace();
@@ -508,7 +531,7 @@ public class LocalStorage extends MyFileStorage {
 
     @Override
     public void download(String sourcePath, String destPath) {
-        File source = new File(sourcePath);
+        File source = new File(this.getSotragePath() + "\\" + sourcePath);
         File dst = new File(destPath);
 
         if(!source.exists()){
@@ -526,11 +549,11 @@ public class LocalStorage extends MyFileStorage {
 
         try {
             if(source.isDirectory()) {
-                File newDest = new File(destPath + "\\" + sourcePath.substring(sourcePath.lastIndexOf("\\")));
+                File newDest = new File(destPath + "\\" + source.getPath().substring(source.getPath().lastIndexOf("\\")));
                 System.out.println("a->" + newDest.getPath());
                 copyDirectoryCompatibityMode(source, newDest);
             } else {
-                File fileDest = new File(destPath + "\\" + sourcePath.substring(sourcePath.lastIndexOf("\\"), sourcePath.length()));
+                File fileDest = new File(destPath + "\\" + source.getPath().substring(source.getPath().lastIndexOf("\\"), sourcePath.length()));
                 copyFile(source, fileDest);
             }
         } catch (IOException e) {
@@ -568,7 +591,6 @@ public class LocalStorage extends MyFileStorage {
         }
     }
 
-    // TREBA DODATI ERROR HANDLING A NE OVAJ SELJACKI
     @Override
     public boolean rename(String oldFileName, String newFileName) {
         if(oldFileName.equalsIgnoreCase(newFileName)){
@@ -585,7 +607,7 @@ public class LocalStorage extends MyFileStorage {
             }
         }
 
-        Path source = Paths.get(oldFileName);
+        Path source = Paths.get(this.getSotragePath() + "\\" + oldFileName);
         try {
             Files.move(source, source.resolveSibling(newFileName));
         }catch (IOException e){
@@ -596,45 +618,90 @@ public class LocalStorage extends MyFileStorage {
         return true;
     }
 
+    public List<Fajl> listDirsForDir(String path){
+
+        List<Fajl> result = new ArrayList<>();
+        File[] files;
+        File src = new File(this.getSotragePath()+"\\"+path);
+
+        if(!src.isDirectory()){
+            return result;
+        }
+
+        files = src.listFiles();
+
+        if(files == null)
+            return result;
+
+        for(File file : files){
+            if(!file.isDirectory())
+                continue;
+
+            Path tempFile = file.getAbsoluteFile().toPath();
+
+            try{
+                BasicFileAttributes attr = Files.readAttributes(tempFile, BasicFileAttributes.class);
+
+                LocalDate creationTime = LocalDate.ofInstant(attr.creationTime().toInstant(), ZoneId.systemDefault());
+                LocalDate modificationTime = LocalDate.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.systemDefault());
+                long fileSize = attr.size();
+
+                String fileName = file.getName();
+                String extension = "dir";
+
+                result.add(new Fajl(fileName,extension,tempFile.toString(),creationTime,modificationTime,fileSize));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        return result;
+    }
+
     @Override
     public List<Fajl> listFilesInDir(String dirPath) {
-        File directory = new File(dirPath);
+        if(dirPath.isEmpty() || dirPath.contains("."))
+            dirPath = "";
+
+        File directory = new File(this.getSotragePath() + "\\" + dirPath);
 
         List<Fajl> results = new ArrayList<>();
 
         if(!(directory.exists() || directory.isDirectory())){
-            return null;
+            return results;
         }
 
         File[] listOfFiles = directory.listFiles();
 
         if(listOfFiles == null)
-            return null;
+            return results;
 
         for(File file : listOfFiles){
+            if(file.isDirectory())
+                continue;
+
             Path tempFile = file.getAbsoluteFile().toPath();
             try {
                 BasicFileAttributes attr = Files.readAttributes(tempFile, BasicFileAttributes.class);
-                String[] data = new String[100];
-
                 // Mozda preuredjivanje?
 
-                if(file.getName().contains("."))
-                    data = file.getName().split("\\.");
-                else {
-                    data[0] = file.getName();
-                    data[1] = "";
+                String fileName = "";
+                String extension = "";
+
+                if (file.getName().contains(".")){
+                    String[] data = file.getName().split("\\.");
+                    fileName = data[0];
+                    extension = data[data.length - 1];
+                }else {
+                    fileName = file.getName();
+                    extension = "";
                 }
 
-                Fajl fajl = new Fajl(data[0],
-                        "."+data[1],
+                results.add(new Fajl(fileName,
+                        extension,
                         tempFile.toString(),
                         LocalDate.ofInstant(attr.creationTime().toInstant(), ZoneId.systemDefault()),
-                        LocalDate.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.systemDefault()),attr.size());
-
-                if(!results.contains(fajl))
-                    results.add(fajl);
-
+                        LocalDate.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.systemDefault()),attr.size()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -645,23 +712,14 @@ public class LocalStorage extends MyFileStorage {
 
     @Override
     public List<Fajl> listFilesInSubDir(String dirPath) {
-        File directory = new File(dirPath);
+        List<Fajl> result = new ArrayList<>(this.listFilesInDir(dirPath));
+        List<Fajl> dirs = new ArrayList<>(this.listDirsForDir(dirPath));
 
-        List<Fajl> result = new ArrayList<>();
-
-        if(!(directory.exists() || directory.isDirectory())){
-            return null;
-        }
-
-        File[] contentsOfDir = directory.listFiles();
-
-        if(contentsOfDir == null)
-            return null;
-
-        for(File file : contentsOfDir){
-            if(file.isDirectory()){
-                result.addAll(listFilesInDir(file.getPath()));
-            }
+        while(!dirs.isEmpty()){
+            Fajl dir = dirs.get(0);
+            dirs.addAll(this.listDirsForDir(dir.getPath()));
+            result.addAll(this.listFilesInDir(dir.getPath()));
+            dirs.remove(0);
         }
 
         return result;
@@ -669,12 +727,7 @@ public class LocalStorage extends MyFileStorage {
 
     @Override
     public List<Fajl> listFiles(String dirPath) {
-        List<Fajl> results = new ArrayList<Fajl>();
-
-        results.addAll(listFilesInDir(dirPath));
-        results.addAll(listFilesInSubDir(dirPath));
-
-        return results;
+        return listFilesInSubDir(dirPath);
     }
 
     @Override
@@ -698,6 +751,31 @@ public class LocalStorage extends MyFileStorage {
     }
 
     @Override
+    public List<Fajl> listFilesForExtension(String dir, String extension) {
+
+        if(dir.isEmpty() || dir.equals("."))
+            dir = "";
+
+        File src = new File(this.getSotragePath() + "\\" + dir);
+
+        List<Fajl> files = new ArrayList<>();
+        List<Fajl> result = new ArrayList<>();
+
+        if(!src.isDirectory())
+            return files;
+
+        files = this.listFilesInDir(dir);
+
+        for(Fajl fajl : files){
+            if(fajl.getExtension().equals(extension)){
+                result.add(fajl);
+            }
+        }
+
+        return result;
+    }
+
+    @Override
     public List<Fajl> listFilesForName(String name) {
         List<Fajl> storageContent = listFiles(getSotragePath());
         List<Fajl> results=new ArrayList<>();
@@ -714,16 +792,41 @@ public class LocalStorage extends MyFileStorage {
     }
 
     @Override
+    public List<Fajl> listFilesForName(String dir, String fileName) {
+        File src = new File(this.getSotragePath()+"\\"+dir);
+
+        List<Fajl> files = new ArrayList<>();
+        List<Fajl> result = new ArrayList<>();
+
+        if(!src.isDirectory())
+            return files;
+
+        files = this.listFilesInDir(dir);
+
+        System.out.println(files.size());
+
+        for(Fajl fajl : files){
+            if(fajl.getFileName().contains(fileName)){
+                result.add(fajl);
+            }
+        }
+
+        return result;
+    }
+
+    @Override
     public boolean listDirForNames(String dirPath, List<String> list) {
-        // C:\\Desktop\\Vid\\joka\\ + testni
-        // C:\\Desktop\\Vid\\joka\\testni\\
-        // listDirForNames("testni",)
-        List<Fajl> dirContent = listFilesInDir(getSotragePath() + dirPath);
+        if(dirPath.isEmpty() || dirPath.equals(".")){
+            dirPath = "";
+        }
+
+        List<Fajl> dirContent = listFilesInDir(dirPath);
         List<String> fileNames = new ArrayList<>();
 
-        for(Fajl file:dirContent)
+        for(Fajl file:dirContent) {
+            System.out.println(file.getFileName());
             fileNames.add(file.getFileName());
-
+        }
         if(list.isEmpty())
             return false;
 
@@ -733,7 +836,10 @@ public class LocalStorage extends MyFileStorage {
     }
 
     private boolean findFileInDir(String dirPath, String fileName){
-        File dir = new File(dirPath);
+        if(dirPath.isEmpty() || dirPath.equals("."))
+            dirPath = "";
+
+        File dir = new File(this.getSotragePath()+"\\"+dirPath);
 
         if(!(dir.exists() || dir.isDirectory())){
             return false;
@@ -775,26 +881,47 @@ public class LocalStorage extends MyFileStorage {
             }
         }
 
-        if(found)
-            return new Fajl(currDir.getName(), "", "");
+        Fajl rezultat = null;
 
-        for(File currFile : storageFiles){
-            boolean flag = false;
-            if(currFile.isDirectory()){
-                flag = findFileInDir(currFile.getPath(), fileName);
-                if(flag) {
-                    result = currFile;
-                    break;
+        try {
+            BasicFileAttributes attributes =  Files.readAttributes(currDir.toPath(), BasicFileAttributes.class);
+
+            String name = currDir.getName();
+            LocalDate dateCreated = LocalDate.ofInstant(attributes.creationTime().toInstant(), ZoneId.systemDefault());
+            LocalDate dateModified = LocalDate.ofInstant(attributes.lastModifiedTime().toInstant(), ZoneId.systemDefault());
+            String ext = "dir";
+            long size = 0;
+
+            if(found)
+                return new Fajl(name, ext, currDir.getAbsolutePath(), dateCreated, dateModified, size);
+
+            for(File currFile : storageFiles){
+                boolean flag = false;
+                if(currFile.isDirectory()){
+                    flag = findFileInDir(currFile.getPath(), fileName);
+                    if(flag) {
+                        result = currFile;
+                        break;
+                    }
                 }
             }
+
+            if(result == null)
+                return null;
+
+            name = result.getName();
+            dateCreated = LocalDate.ofInstant(attributes.creationTime().toInstant(), ZoneId.systemDefault());
+            dateModified = LocalDate.ofInstant(attributes.lastModifiedTime().toInstant(), ZoneId.systemDefault());
+            ext = "dir";
+            size = 0;
+
+            rezultat = new Fajl(name, ext, result.getAbsolutePath(), dateCreated, dateModified, size);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        if(result == null)
-            return null;
-
-        return new Fajl(result.getName(), "", "");
+        return rezultat;
     }
-
 
     //Videti sort za fajlove numericke i alfanumericke - nije najprirodnije
     @Override
@@ -858,7 +985,10 @@ public class LocalStorage extends MyFileStorage {
                     tempFajl.setExtension(data[1]);
                     tempFajl.setCreationDate(fileCreationDate);
                     tempFajl.setModificationDate(fileModificationDate);
-                    tempFajl.setFileSize(0);
+                    if(file.isDirectory())
+                        tempFajl.setFileSize(0);
+                    else
+                        tempFajl.setFileSize(attributes.size());
                     tempFajl.setPath(filePath.toString());
 
                     resultList.add(tempFajl);
@@ -892,9 +1022,9 @@ public class LocalStorage extends MyFileStorage {
 
 
         File[] files=dir.listFiles();
-        for(File dirFile:files){
-            Path filePath = dirFile.getAbsoluteFile().toPath();
-            Fajl tmpFajl=new Fajl("","", "");
+        for(File file:files){
+            Path filePath = file.getAbsoluteFile().toPath();
+            Fajl tempFajl=new Fajl("","", "");
 
             String data[] = new String[100];
 
@@ -907,19 +1037,25 @@ public class LocalStorage extends MyFileStorage {
                         || (modificationDate.isAfter(localStart) && modificationDate.isBefore(localEnd))
                         || ((modificationDate.equals(localEnd) || (modificationDate.equals(localStart))
                         || ((creationDate.equals(localEnd) || (creationDate.equals(localStart))))))){
-                    if(dirFile.getName().contains("."))
-                        data = dirFile.getName().split("\\.");
+
+                    if(file.getName().contains("."))
+                        data = file.getName().split("\\.");
                     else {
-                        data[0] = dirFile.getName();
+                        data[0] = file.getName();
                         data[1] = "";
                     }
-                    tmpFajl.setPath(filePath.toString());
-                    tmpFajl.setFileName(data[0]);
-                    tmpFajl.setExtension(data[1]);
-                    tmpFajl.setCreationDate(creationDate);
-                    tmpFajl.setModificationDate(modificationDate);
-                    tmpFajl.setFileSize(0);
-                    resultSet.add(tmpFajl);
+
+                    tempFajl.setFileName(data[0]);
+                    tempFajl.setExtension(data[1]);
+                    tempFajl.setCreationDate(creationDate);
+                    tempFajl.setModificationDate(modificationDate);
+                    if(file.isDirectory())
+                        tempFajl.setFileSize(0);
+                    else
+                        tempFajl.setFileSize(attr.size());
+                    tempFajl.setPath(filePath.toString());
+
+                    resultSet.add(tempFajl);
 
                 }
             } catch (IOException e) {

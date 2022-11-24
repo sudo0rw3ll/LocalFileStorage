@@ -6,17 +6,114 @@ import baluni.model.Fajl;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) {
         LocalStorage local = new LocalStorage();
-        local.createStorage("C:\\Users\\Vid\\Desktop\\stor");
-        System.out.println(local.getStorageConfig().getForbiddenExtensions());
-        local.getStorageConfig().getFoldersWithCapacity().put("C:\\Users\\Vid\\Desktop\\niko", 2);
-        boolean ok = local.createDirectory("C:\\Users\\Vid\\Desktop","niko",2);
-        System.out.println(ok);
-        local.createDirectory("C:\\Users\\Vid\\Desktop\\niko","s{1..20}");
+
+        local.createStorage("C:\\Users\\Vid\\Desktop\\vidra_joksim");
+
+        String line = "";
+
+        do{
+            Scanner scanner = new Scanner(System.in);
+
+            System.out.printf("# ");
+            line = scanner.nextLine();
+
+            switch (line){
+                case "setSize":
+                    long storageSize = scanner.nextLong();
+                    local.getStorageConfig().setDefaultStorageSize(storageSize);
+                    break;
+                case "setName":
+                    String name = scanner.nextLine();
+                    local.getStorageConfig().setStorageName(name);
+                    break;
+                case "setExtensions":
+                    String extensions = scanner.nextLine();
+                    String[] data = extensions.split(",");
+
+                    for(String d : data) {
+//                        local.getStorageConfig().getForbiddenExtensions().add(d);
+                        if(!local.getStorageConfig().getForbiddenExtensions().contains(d))
+                            local.getStorageConfig().getForbiddenExtensions().add(d);
+                    }
+
+                    break;
+                case "config":
+                    local.saveStorageConfig(local.getSotragePath() + "\\" + "config.json");
+                    break;
+                case "exit":
+                    System.out.println("Bad command");
+                    break;
+            }
+        }while(!line.equalsIgnoreCase("exit"));
+//        local.createDirectories("","f{1..4}");
+//        local.createDir("s1","novis3");
+//        local.createDirectory("","ogranicen3",10);
+//        local.createDirectory("","ogranicen4",2);
+//        local.createFile("ogranicen4","joka_vidra.txt");
+//        local.createFile("ogranicen4","vidra1.txt");
+//        local.createFile("ogranicen4","vidra2.txt");
+//        local.createDirectories("ogranicen3","test{1..12}");
+//        local.moveFiles("s1","ogranicen");
+//        local.rename("s3","vidra_joksim");
+//        local.download("vidra_joksim","C:\\Users\\Vid\\Desktop\\");
+//
+//        for(Fajl fajl : local.listDirsForDir(""))
+//            System.out.println(fajl);
+//
+//        System.out.println("=============================");
+//
+//        for(Fajl fajl : local.listFilesInDir("ogranicen"))
+//            System.out.println(fajl);
+//
+//        System.out.println("=============================");
+//
+//        for(Fajl fajl : local.listFilesInSubDir(""))
+//            System.out.println(fajl);
+//
+//        System.out.println("Extensions ==================");
+//
+//        for(Fajl fajl : local.listFilesForExtension("ogranicen","txt"))
+//            System.out.println(fajl);
+//
+//        System.out.println("For Name ==================");
+//
+//        for(Fajl fajl : local.listFilesForName("ogranicen","test"))
+//            System.out.println(fajl);
+//
+//        System.out.println("Sort ================");
+//
+//        for(Fajl fajl : local.sort(local.listFilesInDir("ogranicen"),true,false,false,false))
+//            System.out.println(fajl);
+//
+//        System.out.println("Filter ==============");
+//
+//        for(Fajl fajl : local.filterData(local.listFilesInDir("ogranicen"),true,false,false,false,false,false))
+//            System.out.println(fajl);
+//
+//        local.deleteDirectories(local.listDirsForDir(""));
+//
+//        local.saveStorageConfig(local.getSotragePath()+"\\config.json");
+//
+
+
+
+
+
+        //        local.createStorage("C:\\Users\\Vid\\Desktop\\stor");
+//        System.out.println(local.getStorageConfig().getForbiddenExtensions());
+//        local.getStorageConfig().getFoldersWithCapacity().put("C:\\Users\\Vid\\Desktop\\niko", 2);
+//        boolean ok = local.createDirectory("C:\\Users\\Vid\\Desktop","niko",2);
+//        System.out.println(ok);
+//        local.createDirectories("C:\\Users\\Vid\\Desktop\\niko","s{1..20}");
+
+//        local.moveFiles("1lB0kEzeVmQCJ43Wmgn9eqp9KXYvS2B7u","1ndAkrAGIDTQyWkc_3nkpzUIs9MbGfX7S");
+//        local.createDir("C:\\Users\\Vid\\Desktop\\niko", "nikola");
 
 //        System.out.println(local.getStorageConfig().getFoldersWithCapacity().get("C:\\Users\\Vid\\Desktop\\niko"));
 //        System.out.println(local.getStorageConfig().getFoldersWithCapacity().keySet());
@@ -30,8 +127,48 @@ public class Main {
 //        System.out.println(local.listFilesInDir("C:\\Users\\Vid\\Desktop\\niko").size());
 //        System.out.println(local.getStorageConfig().getFoldersWithCapacity().get("C:\\Users\\Vid\\Desktop\\niko"));
 
+//        local.setSotragePath("C:\\Users\\Vid\\Desktop\\tt");
+//        StorageConfig config = new StorageConfig();
+//        config.getForbiddenExtensions().add("exe");
+//        config.getForbiddenExtensions().add("pdf");
+//        config.getFoldersWithCapacity().put("C:\\Users\\Vid\\Desktop\\tt\\joka\\kapacitet",4);
+//        local.setStorageConfig(config);
+////        local.createFile1("joka\\kapacitet","test123.txt");
+//        for(Fajl fajl : local.listFilesForName("","Dijkstra"))
+//            System.out.println(fajl);
+
+//        local.createStorage("C:\\Users\\Vid\\Desktop\\novi_storage");
 
 
+//        local.listDirsForDir("ogranicen");
+//        local.createDirectories("","test{1..4}");
+//        local.createDirectory("","ogranicen",3);
+//        local.createFile("test1","testKreiranja.txt");
+//        local.createFile("test2","testDrugogKreiranja.txt");
+//        local.createDirectories("ogranicen","capacity{1..2}");
+//        local.createFile("ogranicen","tryMe.exe");
+//        local.createDirectories("ogranicen","nekiNaziv{1..3}");
+//        local.saveStorageConfig(local.getSotragePath()+"\\"+"config.json");
+//        for(Fajl fajl : local.listFiles(""))
+//            System.out.println(fajl);
+//        List<Fajl> fajlovi = local.listFiles("a");
+//
+//        for(Fajl fajl : fajlovi)
+//            System.out.println(fajl);
+//
+//        List<Fajl> dir = local.listDirsForDir("");
+//
+//        local.deleteDirectories(dir);
+
+//        local.moveFiles("jedan","novi");
+//        local.download("novi","C:\\Users\\Vid\\Desktop\\");
+//        System.out.println(local.listFilesForName("","c"));
+//        local.createDire("","testRelative");
+        //        local.createDirectorie("joka","s{20..25}");
+
+//        for(Fajl fajl :local.listFilesBetweenDates("2022-11-09","2022-11-20","C:\\Users\\Vid\\Desktop\\tt")){
+//            System.out.println(fajl);
+//        }
 //
 //
 //
@@ -113,7 +250,7 @@ public class Main {
 //        }
 
 //        local.moveFiles("C:\\Users\\Vid\\Desktop\\test","C:\\Users\\Vid\\Desktop\\tt\\");
-
+//        local.rename("novi","noviFolder");
 //        List<Fajl> input = new ArrayList<>();
 //        input.add(new Fajl("b",".txt","/root/Desktop/vid/joka/",LocalDate.of(2022,2,18),LocalDate.of(2022,2,10),2000));
 //        input.add(new Fajl("c",".jpg","/root/Desktop/vid/joka2/",LocalDate.of(2022,2,10),LocalDate.of(2022,2,10),2000));
