@@ -513,7 +513,7 @@ public class LocalStorage extends MyFileStorage {
 
                 if(this.getStorageConfig().getFoldersWithCapacity().containsKey(Paths.get(this.getSotragePath() + "\\" + destination).toString())){
                     int destContentSize = this.listFilesInDir(destination).size() + this.listDirsForDir(destination).size();
-                    int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(destination);
+                    int allowdContentSize = this.getStorageConfig().getFoldersWithCapacity().get(this.getSotragePath() + "\\" + destination);
                     if(destContentSize >= allowdContentSize) {
                         System.out.println("Directory is full");
                         return;
