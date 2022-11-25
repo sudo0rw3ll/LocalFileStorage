@@ -14,8 +14,9 @@ public class Main {
         LocalStorage local = new LocalStorage();
 
         local.createStorage("C:\\Users\\Vid\\Desktop\\vidra_joksim");
-
-        local.download("test1.txt","C:\\Users\\Vid\\Desktop");
+//        local.listFilesInSubDir(".");
+//        local.findDirectoryOfFile("test1.txt");
+//        local.download("test1.txt","C:\\Users\\Vid\\Desktop");
 //        String line = "";
 //
 //        do{

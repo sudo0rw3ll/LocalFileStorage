@@ -914,7 +914,7 @@ public class LocalStorage extends MyFileStorage {
             for(File currFile : storageFiles){
                 boolean flag = false;
                 if(currFile.isDirectory()){
-                    flag = findFileInDir(currFile.getPath(), fileName);
+                    flag = findFileInDir(currFile.getName(), fileName);
                     if(flag) {
                         result = currFile;
                         break;
