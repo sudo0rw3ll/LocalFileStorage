@@ -15,42 +15,43 @@ public class Main {
 
         local.createStorage("C:\\Users\\Vid\\Desktop\\vidra_joksim");
 
-        String line = "";
-
-        do{
-            Scanner scanner = new Scanner(System.in);
-
-            System.out.printf("# ");
-            line = scanner.nextLine();
-
-            switch (line){
-                case "setSize":
-                    long storageSize = scanner.nextLong();
-                    local.getStorageConfig().setDefaultStorageSize(storageSize);
-                    break;
-                case "setName":
-                    String name = scanner.nextLine();
-                    local.getStorageConfig().setStorageName(name);
-                    break;
-                case "setExtensions":
-                    String extensions = scanner.nextLine();
-                    String[] data = extensions.split(",");
-
-                    for(String d : data) {
-//                        local.getStorageConfig().getForbiddenExtensions().add(d);
-                        if(!local.getStorageConfig().getForbiddenExtensions().contains(d))
-                            local.getStorageConfig().getForbiddenExtensions().add(d);
-                    }
-
-                    break;
-                case "config":
-                    local.saveStorageConfig(local.getSotragePath() + "\\" + "config.json");
-                    break;
-                case "exit":
-                    System.out.println("Bad command");
-                    break;
-            }
-        }while(!line.equalsIgnoreCase("exit"));
+        local.download("test1.txt","C:\\Users\\Vid\\Desktop");
+//        String line = "";
+//
+//        do{
+//            Scanner scanner = new Scanner(System.in);
+//
+//            System.out.printf("# ");
+//            line = scanner.nextLine();
+//
+//            switch (line){
+//                case "setSize":
+//                    long storageSize = scanner.nextLong();
+//                    local.getStorageConfig().setDefaultStorageSize(storageSize);
+//                    break;
+//                case "setName":
+//                    String name = scanner.nextLine();
+//                    local.getStorageConfig().setStorageName(name);
+//                    break;
+//                case "setExtensions":
+//                    String extensions = scanner.nextLine();
+//                    String[] data = extensions.split(",");
+//
+//                    for(String d : data) {
+////                        local.getStorageConfig().getForbiddenExtensions().add(d);
+//                        if(!local.getStorageConfig().getForbiddenExtensions().contains(d))
+//                            local.getStorageConfig().getForbiddenExtensions().add(d);
+//                    }
+//
+//                    break;
+//                case "config":
+//                    local.saveStorageConfig(local.getSotragePath() + "\\" + "config.json");
+//                    break;
+//                case "exit":
+//                    System.out.println("Bad command");
+//                    break;
+//            }
+//        }while(!line.equalsIgnoreCase("exit"));
 //        local.createDirectories("","f{1..4}");
 //        local.createDir("s1","novis3");
 //        local.createDirectory("","ogranicen3",10);

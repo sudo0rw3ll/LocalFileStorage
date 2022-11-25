@@ -570,7 +570,7 @@ public class LocalStorage extends MyFileStorage {
                 System.out.println("a->" + newDest.getPath());
                 copyDirectoryCompatibityMode(source, newDest);
             } else {
-                File fileDest = new File(destPath + "\\" + source.getPath().substring(source.getPath().lastIndexOf("\\"), sourcePath.length()));
+                File fileDest = new File(destPath + "\\" + source.getPath().substring(source.getPath().lastIndexOf("\\"), source.getPath().length()));
                 copyFile(source, fileDest);
             }
         } catch (IOException e) {
