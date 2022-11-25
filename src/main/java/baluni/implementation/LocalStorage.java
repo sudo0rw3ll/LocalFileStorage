@@ -639,6 +639,10 @@ public class LocalStorage extends MyFileStorage {
 
         List<Fajl> result = new ArrayList<>();
         File[] files;
+
+        if(path.isEmpty() || path.equals("."))
+            path = "";
+
         File src = new File(this.getSotragePath()+"\\"+path);
 
         if(!src.isDirectory()){
@@ -729,13 +733,15 @@ public class LocalStorage extends MyFileStorage {
 
     @Override
     public List<Fajl> listFilesInSubDir(String dirPath) {
+        System.out.println(this.getSotragePath());
         List<Fajl> result = new ArrayList<>(this.listFilesInDir(dirPath));
         List<Fajl> dirs = new ArrayList<>(this.listDirsForDir(dirPath));
 
         while(!dirs.isEmpty()){
             Fajl dir = dirs.get(0);
-            dirs.addAll(this.listDirsForDir(dir.getPath()));
-            result.addAll(this.listFilesInDir(dir.getPath()));
+            String tempPath = dir.getPath().substring(this.getSotragePath().length()+1,dir.getPath().length());
+            dirs.addAll(this.listDirsForDir(tempPath));
+            result.addAll(this.listFilesInDir(tempPath));
             dirs.remove(0);
         }
 
