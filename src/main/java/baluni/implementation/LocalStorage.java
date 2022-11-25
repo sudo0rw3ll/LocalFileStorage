@@ -2,6 +2,7 @@ package baluni.implementation;
 
 import baluni.filestorage.MyFileStorage;
 import baluni.filestorage.StorageConfig;
+import baluni.filestorage.StorageManager;
 import baluni.implementation.comparators.SortByCreationDate;
 import baluni.implementation.comparators.SortByModificationDate;
 import baluni.implementation.comparators.SortByName;
@@ -20,6 +21,10 @@ import java.util.*;
 public class LocalStorage extends MyFileStorage {
 
     private long usedCapacity = 0;
+
+    static {
+        StorageManager.initStorage(new LocalStorage());
+    }
 
     @Override
     public void setStorageConfig(StorageConfig storageConfig) {
@@ -175,6 +180,17 @@ public class LocalStorage extends MyFileStorage {
             return false;
         }
 
+        if(this.getStorageConfig().getFoldersWithCapacity().containsKey(this.getSotragePath()+"\\"+destination)){
+            int currSize = this.listFilesInDir(destination).size()
+                    + this.listDirsForDir(destination).size();
+            int allowedSize = this.getStorageConfig().getFoldersWithCapacity().get(this.getSotragePath() + "\\" +destination);
+
+            if(currSize >= allowedSize){
+                System.out.println("Directory full");
+                return false;
+            }
+        }
+
         String folderPath = path + "\\" + dirName;
 
         File folder = new File(folderPath);
@@ -299,6 +315,7 @@ public class LocalStorage extends MyFileStorage {
 
     @Override
     public void fileUpload(String s, List<Fajl> list) {
+        System.out.println("File upload not supported on local storage");
         return;
     }
 
@@ -727,12 +744,12 @@ public class LocalStorage extends MyFileStorage {
 
     @Override
     public List<Fajl> listFiles(String dirPath) {
-        return listFilesInSubDir(dirPath);
+        return listFilesInDir(dirPath);
     }
 
     @Override
     public List<Fajl> listFilesForExtension(String extension) {
-        List<Fajl> storageContent = listFiles(getSotragePath());
+        List<Fajl> storageContent = listFiles("");
         List<Fajl> results = new ArrayList<>();
 
         List<String> forbiddenExt=this.getStorageConfig().getForbiddenExtensions();
@@ -777,7 +794,7 @@ public class LocalStorage extends MyFileStorage {
 
     @Override
     public List<Fajl> listFilesForName(String name) {
-        List<Fajl> storageContent = listFiles(getSotragePath());
+        List<Fajl> storageContent = listFiles("");
         List<Fajl> results=new ArrayList<>();
 
         if(name.equals(""))
@@ -824,7 +841,6 @@ public class LocalStorage extends MyFileStorage {
         List<String> fileNames = new ArrayList<>();
 
         for(Fajl file:dirContent) {
-            System.out.println(file.getFileName());
             fileNames.add(file.getFileName());
         }
         if(list.isEmpty())
@@ -948,8 +964,8 @@ public class LocalStorage extends MyFileStorage {
 
         List<Fajl> resultList = new ArrayList<Fajl>();
 
-        if(dirPath.isEmpty())
-            return null;
+        if(dirPath.isEmpty() || dirPath.equals("."))
+            dirPath = this.getSotragePath();
 
         File directory = new File(dirPath);
 
@@ -962,6 +978,8 @@ public class LocalStorage extends MyFileStorage {
         File[] dirFiles = directory.listFiles();
 
         for(File file : dirFiles){
+            if(file.isDirectory())
+                continue;
             Path filePath = file.getAbsoluteFile().toPath();
             Fajl tempFajl = new Fajl("","","");
 
@@ -1009,8 +1027,8 @@ public class LocalStorage extends MyFileStorage {
         LocalDate localStart = LocalDate.parse(startDate);
         LocalDate localEnd = LocalDate.parse(endDate);
 
-        if(dirPath.isEmpty())
-            return null;
+        if(dirPath.isEmpty() || dirPath.equals("."))
+            dirPath = this.getSotragePath();
 
         File dir=new File(dirPath);
 
@@ -1023,6 +1041,8 @@ public class LocalStorage extends MyFileStorage {
 
         File[] files=dir.listFiles();
         for(File file:files){
+            if(file.isDirectory())
+                continue;
             Path filePath = file.getAbsoluteFile().toPath();
             Fajl tempFajl=new Fajl("","", "");
 
