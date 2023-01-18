@@ -39,13 +39,13 @@ Other supported options are:
   * copyFile - with provided source and destination path
 
 * Directory listing
- * listFilesInDir - lists files only in provided directory
- * listFilesInSubDir - lists files in provided directory and all its subdirectories
- * listFilesForExtension - lists files with specified extension
- * listFilesForName - lists files with specified name
- * listDirForNames - checks whether provided directory contains all provided file names
- * listFilesByDate - lists files created/modified on provided date
- * listFilesBetweenDates - lists files created/modified within provided date range
+  * listFilesInDir - lists files only in provided directory
+  * listFilesInSubDir - lists files in provided directory and all its subdirectories
+  * listFilesForExtension - lists files with specified extension
+  * listFilesForName - lists files with specified name
+  * listDirForNames - checks whether provided directory contains all provided file names
+  * listFilesByDate - lists files created/modified on provided date
+  * listFilesBetweenDates - lists files created/modified within provided date range
 
 * Data filtering
- * filter - filters search/listing data based on provided filter flags
+  * filter - filters search/listing data based on provided filter flags
