@@ -2,6 +2,14 @@
 This project presents implementation of API specification which
 can be found [here](https://github.com/sudo0rw3ll/FileStorageAPI).
 
+Fully written in java and deployed as maven package which can
+be used as a dependency. Along with GoogleDrive implementation
+which is also deployed as maven dependency it's integrated
+inside client application which supports managing both 
+local and google file storage.
+
+CLI can be found at this link [FileStorageCLI](https://github.com/sudo0rw3ll/FileStorageConsole)
+
 LocalFileStorage has concrete implementation of each function
 from API spec with error handling. Whole concept is based on
 prompting user to enter file storage destination. User can choose
